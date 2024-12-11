@@ -8,56 +8,36 @@ services:
       context: ./shipr-frontend
     ports:
       - "8081:80"
-    environment:
-      - REACT_APP_INVENTORY_SERVICE_URL=http://localhost:8001
-      - REACT_APP_PAYMENTS_SERVICE_URL=http://localhost:8002
     depends_on:
-      - inventory
-      - payment
+      - shipr-inventory
+      - shipr-payment
 
   # Shipr Inventory Python API Service
-  inventory:
+  shipr-inventory:
     image: shipr-inventory:latest
     build:
       context: ./shipr-inventory
     ports:
       - "8001:8000"
-    environment:
-      - REDIS_HOST=redis://redis_inventory
-      - REDIS_PORT=6379
-      - REDIS_DB=0
     depends_on:
-      - redis_inventory
+      - redis
 
   # Shipr Payment Python API Service
-  payment:
+  shipr-payment:
     image: shipr-payment:latest
     build:
       context: ./shipr-payment
     ports:
       - "8002:8000"
-    environment:
-      - REDIS_HOST=redis://redis_payment
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-      - PRODUCT_SERVICE_URL=http://localhost:8001
-      - FEE_PERCENTAGE=0.2
     depends_on:
-      - inventory
-      - redis_payment
+      - shipr-inventory
+      - redis
 
   # Redis for Shipr Inventory
-  redis_inventory:
+  redis:
     image: redis:alpine
     volumes:
-      - redis_inventory_data:/data
-
-  # Redis for Shipr Payment
-  redis_payment:
-    image: redis:alpine
-    volumes:
-      - redis_payment_data:/data
+      - redis_data:/data
 
 volumes:
-  redis_inventory_data:
-  redis_payment_data:
+  redis_data:
