@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shipr-inventory
-  labels:
-    app: shipr-inventory
 spec:
   replicas: 2
   selector:
@@ -16,27 +14,50 @@ spec:
     spec:
       containers:
       - name: shipr-inventory
-        image: osamaazm/test-repo:shipr-inventory
+        image: osamaazm/inventory:v1
         ports:
         - containerPort: 8000
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 10
-          failureThreshold: 3
+        env:
+          - name: REDIS_HOST
+            value: "redis"
+          - name: REDIS_PORT
+            value: "6379"
         livenessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 8000
           initialDelaySeconds: 10
-          periodSeconds: 15
-          failureThreshold: 3
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
         resources:
           requests:
-            cpu: "100m"
             memory: "128Mi"
-          limits:
             cpu: "500m"
+          limits:
             memory: "256Mi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipr-inventory
+spec:
+  selector:
+    app: shipr-inventory
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30802
+  type: NodePort

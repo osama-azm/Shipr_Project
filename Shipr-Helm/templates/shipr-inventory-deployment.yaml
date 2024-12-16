@@ -1,21 +1,56 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shipr-inventory
-  labels:
-    app: shipr-inventory
+  name: {{ Values.inventory.name }}
 spec:
-  replicas: {{ .Values.inventory.replicas }}
+  replicas: {{ Values.inventory.replicas }}
   selector:
     matchLabels:
-      app: shipr-inventory
+      app: {{ Values.inventory.name }}
   template:
     metadata:
       labels:
-        app: shipr-inventory
+        app: {{ Values.inventory.name }}
     spec:
       containers:
-      - name: shipr-inventory
-        image: {{ .Values.inventory.image }}
+      - name: {{ Values.inventory.name }}
+        image: {{ Values.inventory.repository }}:{{ Values.inventory.tag }}
         ports:
-        - containerPort: 8000
+        - containerPort: {{ Values.inventory.containerPort }}
+        env:
+          - name: {{ Values.inventory.env.host-name }}
+            value: {{ Values.inventory.env.host-value }}
+          - name: {{ Values.inventory.env.port-name }}
+            value: {{ Values.inventory.env.port-value }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ Values.inventory.containerPort }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ Values.inventory.containerPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: {{ Values.inventory.containerPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ Values.inventory.name }}
+spec:
+  selector:
+    app: {{ Values.inventory.name }}
+  ports:
+    - protocol: TCP
+      port: {{ Values.inventory.service.port }}
+      targetPort: {{ Values.inventory.service.targetport }}
+      nodePort: {{ Values.inventory.service.nodePort }}
+  type: NodePort

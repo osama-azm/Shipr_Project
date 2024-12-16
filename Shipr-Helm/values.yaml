@@ -1,11 +1,55 @@
 frontend:
-  image: "osamaazm/test-repo:shipr-frontend"
-  replicas: 2
-
-payment:
-  image: "osamaazm/test-repo:shipr-payment"
-  replicas: 2
+  name: frontend
+  repository: osamaazm/frontend
+  tag: v1
+  replicas: 1
+  containerPort: 80
+  service:
+    port: 80
+    targetport: 80
+    nodePort: 30801
 
 inventory:
-  image: "osamaazm/test-repo:shipr-inventory"
-  replicas: 2
+  name: inventory
+  repository: osamaazm/inventory
+  tag: v1
+  replicas: 1
+  containerPort: 8000
+  service:
+    port: 8000
+    targetport: 8000
+    nodePort: 30802
+  env:
+    host-name: REDIS_HOST
+    host-value: "redis"
+    port-name: REDIS_PORT
+    port-value: "6379"
+
+payment:
+  name: payment
+  repository: osamaazm/payment
+  tag: v1
+  replicas: 1
+  containerPort: 8000
+  service:
+    port: 8000
+    targetport: 8000
+    nodePort: 30803
+  env:
+    host-name: REDIS_HOST
+    host-value: "redis"
+    port-name: REDIS_PORT
+    port-value: "6379"
+
+redis:
+  name: redis
+  repository: redis
+  tag: alpine
+  replicas: 1
+  containerPort: 6379
+  service:
+    port: 6379
+  volume:
+    storage: 1Gi
+    accessModes: ReadWriteOnce
+    hostPath: /data/redis

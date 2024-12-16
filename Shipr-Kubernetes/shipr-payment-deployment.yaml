@@ -2,8 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shipr-payment
-  labels:
-    app: shipr-payment
 spec:
   replicas: 2
   selector:
@@ -16,13 +14,50 @@ spec:
     spec:
       containers:
       - name: shipr-payment
-        image: osamaazm/test-repo:shipr-payment
+        image: osamaazm/payment:v1
         ports:
         - containerPort: 8000
+        env:
+          - name: REDIS_HOST
+            value: "redis"
+          - name: REDIS_PORT
+            value: "6379"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 5
         resources:
           requests:
-            cpu: "100m"
             memory: "128Mi"
-          limits:
             cpu: "500m"
+          limits:
             memory: "256Mi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipr-payment
+spec:
+  selector:
+    app: shipr-payment
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30803
+  type: NodePort

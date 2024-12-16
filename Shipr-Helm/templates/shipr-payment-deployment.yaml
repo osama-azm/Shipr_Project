@@ -1,21 +1,56 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: shipr-payment
-  labels:
-    app: shipr-payment
+  name: {{ Values.payment.name }}
 spec:
-  replicas: {{ .Values.payment.replicas }}
+  replicas: {{ Values.payment.replicas }}
   selector:
     matchLabels:
-      app: shipr-payment
+      app: {{ Values.payment.name }}
   template:
     metadata:
       labels:
-        app: shipr-payment
+        app: {{ Values.payment.name }}
     spec:
       containers:
-      - name: shipr-payment
-        image: {{ .Values.payment.image }}
+      - name: {{ Values.payment.name }}
+        image: {{ Values.payment.repository }}:{{ Values.payment.tag }}
         ports:
-        - containerPort: 8000
+        - containerPort: {{ Values.payment.containerPort }}
+        env:
+          - name: {{ Values.payment.env.host-name }}
+            value: {{ Values.payment.env.host-value }}
+          - name: {{ Values.payment.env.port-name }}
+            value: {{ Values.payment.env.port-value }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ Values.payment.containerPort }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ Values.payment.containerPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: {{ Values.payment.containerPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ Values.payment.name }}
+spec:
+  selector:
+    app: {{ Values.payment.name }}
+  ports:
+    - protocol: TCP
+      port: {{ Values.payment.service.port }}
+      targetPort: {{ Values.payment.service.targetport }}
+      nodePort: {{ Values.payment.service.nodePort }}
+  type: NodePort
