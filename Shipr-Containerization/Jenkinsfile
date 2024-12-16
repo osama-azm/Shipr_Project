@@ -6,6 +6,27 @@ pipeline {
     }
 
     stages {
+        stage('Branch Selection') {
+            steps {
+                script {
+                    // Print the selected branch
+                    echo "Running pipeline on branch: ${params.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Checkout Code') {
+            steps {
+                script {
+                    // Checkout the code from the selected branch
+                    checkout([
+                        $class: 'GitSCM',
+                        branches: [[name: "*/${params.BRANCH_NAME}"]],
+                    ])
+                }
+            }
+        }
+
         stage('Pull Images') {
             steps {
                 script {

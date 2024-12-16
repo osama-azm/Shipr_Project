@@ -3,7 +3,6 @@ version: '3.8'
 services:
   # React Frontend Service
   frontend:
-    image: shipr-frontend:latest
     build:
       context: ./shipr-frontend
     ports:
@@ -14,7 +13,6 @@ services:
 
   # Shipr Inventory Python API Service
   shipr-inventory:
-    image: shipr-inventory:latest
     build:
       context: ./shipr-inventory
     ports:
@@ -22,9 +20,17 @@ services:
     depends_on:
       - redis
 
+  shipr-inventory-consumer:
+    build:
+      context: ./shipr-inventory
+      dockerfile: Dockerfile.consumer
+    ports:
+      - "8003:8000"
+    depends_on:
+      - redis
+
   # Shipr Payment Python API Service
   shipr-payment:
-    image: shipr-payment:latest
     build:
       context: ./shipr-payment
     ports:
@@ -32,6 +38,16 @@ services:
     depends_on:
       - shipr-inventory
       - redis
+
+  shipr-payment-consumer:
+    build:
+      context: ./shipr-payment
+      dockerfile: Dockerfile.consumer
+    ports:
+      - "8004:8000"
+    depends_on:
+      - shipr-inventory
+      - redis  
 
   # Redis for Shipr Inventory
   redis:
