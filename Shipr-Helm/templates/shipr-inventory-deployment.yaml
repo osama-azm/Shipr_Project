@@ -10,7 +10,9 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ Values.inventory.name }}
+        {{- with .Values.inventory.labels }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
     spec:
       containers:
       - name: {{ Values.inventory.name }}

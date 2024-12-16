@@ -8,6 +8,10 @@ frontend:
     port: 80
     targetport: 80
     nodePort: 30801
+  labels:
+    environment: production
+    team: devops
+    app: frontend
 
 inventory:
   name: inventory
@@ -24,6 +28,10 @@ inventory:
     host-value: "redis"
     port-name: REDIS_PORT
     port-value: "6379"
+  labels:
+    environment: production
+    team: devops
+    app: inventory
 
 payment:
   name: payment
@@ -40,6 +48,10 @@ payment:
     host-value: "redis"
     port-name: REDIS_PORT
     port-value: "6379"
+  labels:
+    environment: production
+    team: devops
+    app: payment
 
 redis:
   name: redis
