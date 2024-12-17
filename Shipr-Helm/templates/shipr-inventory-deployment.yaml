@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ Values.inventory.name }}
+  labels:
+    app: {{ Values.inventory.name }}
 spec:
   replicas: {{ Values.inventory.replicas }}
   selector:
@@ -55,4 +57,4 @@ spec:
       port: {{ Values.inventory.service.port }}
       targetPort: {{ Values.inventory.service.targetport }}
       nodePort: {{ Values.inventory.service.nodePort }}
-  type: NodePort
+  type: {{ Values.inventory.type }}

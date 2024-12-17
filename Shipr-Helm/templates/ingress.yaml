@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ Values.ingress.name }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: {{ Values.ingress.host }}
+    http:
+      paths:
+      - path: {{ Values.ingress.frontend.path }}
+        pathType: {{ Values.ingress.frontend.pathType }}
+        backend:
+          service:
+            name: {{ Values.ingress.frontend.service.name }}
+            port:
+              number: {{ Values.ingress.frontend.service.port }}
+      - path: {{ Values.ingress.payment.path }}
+        pathType: {{ Values.ingress.payment.pathType }}
+        backend:
+          service:
+            name: {{ Values.ingress.payment.service.name }}
+            port:
+              number: {{ Values.ingress.payment.service.port }}
+      - path: {{ Values.ingress.inventory.path }}
+        pathType: {{ Values.ingress.inventory.pathType }}
+        backend:
+          service:
+            name: {{ Values.ingress.inventory.service.name }}
+            port:
+              number: {{ Values.ingress.inventory.service.port }}

@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: shipr-inventory
+  labels:
+    app: shipr-inventory
 spec:
   replicas: 2
   selector:

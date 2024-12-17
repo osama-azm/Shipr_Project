@@ -4,6 +4,7 @@ frontend:
   tag: v1
   replicas: 1
   containerPort: 80
+  type: NodePort
   service:
     port: 80
     targetport: 80
@@ -19,6 +20,7 @@ inventory:
   tag: v1
   replicas: 1
   containerPort: 8000
+  type: NodePort
   service:
     port: 8000
     targetport: 8000
@@ -39,6 +41,7 @@ payment:
   tag: v1
   replicas: 1
   containerPort: 8000
+  type: NodePort
   service:
     port: 8000
     targetport: 8000
@@ -48,6 +51,12 @@ payment:
     host-value: "redis"
     port-name: REDIS_PORT
     port-value: "6379"
+    db-name: REDIS_DB
+    db-value: "0"
+    url-name: PRODUCT_SERVICE_URL
+    url-value: "http://192.168.49.2:30802"
+    fee-name: FEE_PERCENTAGE
+    fee-value: "0.2"
   labels:
     environment: production
     team: devops
@@ -59,9 +68,32 @@ redis:
   tag: alpine
   replicas: 1
   containerPort: 6379
+  type: ClusterIP
   service:
     port: 6379
   volume:
     storage: 1Gi
     accessModes: ReadWriteOnce
     hostPath: /data/redis
+
+ingress:
+  name: shipr-ingress
+  host: shipr.local
+  frontend:
+    path: /frontend
+    pathType: Prefix
+    service:
+      name: shipr-frontend-service
+      port: 80
+  payment:
+    path: /payment
+    pathType: Prefix
+    service:
+      name: shipr-payment-service
+      port: 8000
+  inventory:
+    path: /inventory
+    pathType: Prefix
+    service:
+      name: shipr-inventory-service
+      port: 8000

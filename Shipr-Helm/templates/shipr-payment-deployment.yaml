@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ Values.payment.name }}
+  labels:
+    app: {{ Values.payment.name }}
 spec:
   replicas: {{ Values.payment.replicas }}
   selector:
@@ -24,6 +26,12 @@ spec:
             value: {{ Values.payment.env.host-value }}
           - name: {{ Values.payment.env.port-name }}
             value: {{ Values.payment.env.port-value }}
+          - name: {{ Values.payment.env.db-name }}
+            value: {{ Values.payment.env.db-value }}
+          - name: {{ Values.payment.env.url-name }}
+            value: {{ Values.payment.env.url-value }}
+          - name: {{ Values.payment.env.fee-name }}
+            value: {{ Values.payment.env.fee-value }}
         livenessProbe:
           httpGet:
             path: /
@@ -55,4 +63,4 @@ spec:
       port: {{ Values.payment.service.port }}
       targetPort: {{ Values.payment.service.targetport }}
       nodePort: {{ Values.payment.service.nodePort }}
-  type: NodePort
+  type: {{ Values.payment.type }}
