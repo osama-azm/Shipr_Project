@@ -10,7 +10,9 @@ spec:
   template:
     metadata:
       labels:
-        app: {{  .Values.redis.name }}
+        {{- with .Values.redis.labels }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
     spec:
       containers:
       - name: {{  .Values.redis.name }}

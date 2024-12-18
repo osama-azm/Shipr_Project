@@ -119,6 +119,19 @@ redis:
       enabled: true
     readiness:
       enabled: true
+  labels:
+    environment: production
+    team: devops
+    app: redis
+  extraLabels:
+    customLabel: "value"
+  parameters:
+    type: fast
+    fsType: ext4
+    encrypted: "false"
+  mountOptions:
+    option1: "rw"
+    option2: "dirsync"
 
 ingress:
   enabled: false
