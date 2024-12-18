@@ -13,6 +13,13 @@ frontend:
     environment: production
     team: devops
     app: frontend
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "500m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
 
 inventory:
   name: inventory
@@ -34,6 +41,13 @@ inventory:
     environment: production
     team: devops
     app: inventory
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "500m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
 
 
 inventory-consumer:
@@ -52,6 +66,13 @@ inventory-consumer:
     environment: production
     team: devops
     app: inventory-consumer
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "500m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
 
 payment:
   name: payment
@@ -75,6 +96,13 @@ payment:
     environment: production
     team: devops
     app: payment
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "500m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
 
 
 payment-consumer:
@@ -93,6 +121,13 @@ payment-consumer:
     environment: production
     team: devops
     app: payment-consumer
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "500m"
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
 
 redis:
   name: redis

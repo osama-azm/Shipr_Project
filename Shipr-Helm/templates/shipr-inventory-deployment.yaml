@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: {{ .Values.inventory.name }}
   labels:
-    app: {{ .Values.inventory.name }}
+    {{- with .Values.inventory.labels }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
 spec:
   replicas: {{ .Values.inventory.replicas }}
   selector:
@@ -42,3 +44,10 @@ spec:
             port: {{ .Values.inventory.containerPort }}
           initialDelaySeconds: 15
           periodSeconds: 5
+        resources: 
+          requests:
+            memory: {{ .Values.inventory.resources.requests.memory }}
+            cpu: {{ .Values.inventory.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.inventory.resources.limits.memory }}
+            cpu: {{ .Values.inventory.resources.limits.cpu }}

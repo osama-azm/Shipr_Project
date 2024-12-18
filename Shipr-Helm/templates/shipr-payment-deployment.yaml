@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: {{ .Values.payment.name }}
   labels:
-    app: {{ .Values.payment.name }}
+    {{- with .Values.payment.labels }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
 spec:
   replicas: {{ .Values.payment.replicas }}
   selector:
@@ -42,3 +44,10 @@ spec:
             port: {{ .Values.payment.containerPort }}
           initialDelaySeconds: 15
           periodSeconds: 5
+        resources:
+          requests:
+            memory: {{ .Values.payment.resources.requests.memory }}
+            cpu: {{ .Values.payment.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.payment.resources.limits.memory }}
+            cpu: {{ .Values.payment.resources.limits.cpu }}

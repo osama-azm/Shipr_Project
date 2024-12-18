@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: {{ .Values.frontend.name }}
   labels:
-    app: {{ .Values.frontend.name }}
+    {{- with .Values.frontend.labels }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
 spec:
   replicas: {{ .Values.frontend.replicas }}
   selector:
@@ -39,3 +41,10 @@ spec:
             port: {{ .Values.frontend.containerPort }}
           initialDelaySeconds: 15
           periodSeconds: 5
+        resources:
+          requests:
+            memory: {{ .Values.frontend.resources.requests.memory }}
+            cpu: {{ .Values.frontend.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.frontend.resources.limits.memory }}
+            cpu: {{ .Values.frontend.resources.limits.cpu }}
