@@ -110,7 +110,9 @@ redis:
     port: 6379
   volume:
     storage: 1Gi
-    accessModes: ReadWriteOnce
+    accessModes:
+      - ReadWriteOnce
+      - ReadOnlyMany
     hostPath: /data/redis
   probes:
     liveness:
