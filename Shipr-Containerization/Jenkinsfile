@@ -1,67 +1,47 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'SERVICE_NAME', choices: ['shipr-payment', 'shipr-inventory', 'shipr-frontend', 'shipr-inventory-consumer', 'shipr-payment-consumer'], description: 'Select the service to deploy')
+    }
+
     environment {
         DOCKER_HUB_REPO = 'osamaazm/test-repo'
     }
 
     stages {
-        stage('Branch Selection') {
-            steps {
-                script {
-                    // Print the selected branch
-                    echo "Running pipeline on branch: ${params.BRANCH_NAME}"
-                }
-            }
-        }
-
         stage('Checkout Code') {
             steps {
                 script {
-                    // Checkout the code from the selected branch
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: "*/${params.BRANCH_NAME}"]],
-                    ])
+                    checkout([$class: 'GitSCM', branches: [[name: "/Shipr-Containerization/${params.BRANCH_NAME}"]]])
                 }
             }
         }
 
-        stage('Pull Images') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Pull Docker images from Docker Hub
-                    sh '''
-                    docker pull ${DOCKER_HUB_REPO}:shipr-inventory
-                    docker pull ${DOCKER_HUB_REPO}:shipr-payment
-                    docker pull ${DOCKER_HUB_REPO}:shipr-frontend
-                    '''
+                    sh "docker build -t ${DOCKER_HUB_REPO}:${params.SERVICE_NAME} ./${params.SERVICE_NAME}"
                 }
             }
         }
 
-        stage('Stop Existing Containers') {
+        stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Stop and remove any existing containers
-                    sh '''
-                    docker rm -f shipr-inventory || true
-                    docker rm -f shipr-payment || true
-                    docker rm -f shipr-frontend || true
-                    '''
+                    sh "docker push ${DOCKER_HUB_REPO}:${params.SERVICE_NAME}"
                 }
             }
         }
 
-        stage('Run Containers') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Run the services as Docker containers
-                    sh '''
-                    docker run -d --name shipr-inventory -p 3001:3001 ${DOCKER_HUB_REPO}:shipr-inventory
-                    docker run -d --name shipr-payment -p 3002:3002 ${DOCKER_HUB_REPO}:shipr-payment
-                    docker run -d --name shipr-frontend -p 3000:3000 ${DOCKER_HUB_REPO}:shipr-frontend
-                    '''
+                    sh """
+                    helm upgrade --install ${params.SERVICE_NAME} ./Shipr-Helm/${params.SERVICE_NAME} \
+                        --set image.repository=${DOCKER_HUB_REPO} \
+                        --set image.tag=${params.SERVICE_NAME}
+                    """
                 }
             }
         }
@@ -69,10 +49,10 @@ pipeline {
 
     post {
         success {
-            echo 'All services have been successfully deployed locally!'
+            echo "${params.SERVICE_NAME} has been successfully built, pushed, and deployed!"
         }
         failure {
-            echo 'Deployment failed. Please check the logs for details.'
+            echo "${params.SERVICE_NAME} pipeline failed."
         }
     }
 }

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.inventory-consumer.name }}
+  labels:
+    app: {{ .Values.inventory-consumer.name }}
+spec:
+  replicas: {{ .Values.inventory-consumer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.inventory-consumer.name }}
+  template:
+    metadata:
+      labels:
+        {{- with .Values.inventory-consumer.labels }}
+        {{- toYaml . | nindent 6 }}
+        {{- end }}
+    spec:
+      containers:
+      - name: {{ .Values.inventory-consumer.name }}
+        image: {{ .Values.inventory-consumer.repository }}:{{ .Values.inventory-consumer.tag }}
+        ports:
+        - containerPort: {{ .Values.inventory-consumer.containerPort }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.inventory-consumer.containerPort }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.inventory-consumer.containerPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        startupProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.inventory-consumer.containerPort }}
+          initialDelaySeconds: 15
+          periodSeconds: 5

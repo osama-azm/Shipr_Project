@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ Values.inventory.name }}
+  name: {{ .Values.inventory.name }}
   labels:
-    app: {{ Values.inventory.name }}
+    app: {{ .Values.inventory.name }}
 spec:
-  replicas: {{ Values.inventory.replicas }}
+  replicas: {{ .Values.inventory.replicas }}
   selector:
     matchLabels:
-      app: {{ Values.inventory.name }}
+      app: {{ .Values.inventory.name }}
   template:
     metadata:
       labels:
@@ -17,28 +17,28 @@ spec:
         {{- end }}
     spec:
       containers:
-      - name: {{ Values.inventory.name }}
-        image: {{ Values.inventory.repository }}:{{ Values.inventory.tag }}
+      - name: {{ .Values.inventory.name }}
+        image: {{ .Values.inventory.repository }}:{{ .Values.inventory.tag }}
         ports:
-        - containerPort: {{ Values.inventory.containerPort }}
+        - containerPort: {{ .Values.inventory.containerPort }}
         envFrom:
           - configMapRef:
-              name: {{ Values.inventory.configMapName }}
+              name: {{ .Values.inventory.configMapName }}
         livenessProbe:
           httpGet:
             path: /
-            port: {{ Values.inventory.containerPort }}
+            port: {{ .Values.inventory.containerPort }}
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
-            port: {{ Values.inventory.containerPort }}
+            port: {{ .Values.inventory.containerPort }}
           initialDelaySeconds: 5
           periodSeconds: 5
         startupProbe:
           httpGet:
             path: /
-            port: {{ Values.inventory.containerPort }}
+            port: {{ .Values.inventory.containerPort }}
           initialDelaySeconds: 15
           periodSeconds: 5

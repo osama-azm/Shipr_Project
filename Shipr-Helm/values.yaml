@@ -35,6 +35,24 @@ inventory:
     team: devops
     app: inventory
 
+
+inventory-consumer:
+  name: inventory-consumer
+  repository: osamaazm/inventory-consumer
+  tag: v1
+  replicas: 1
+  containerPort: 8000
+  type: NodePort
+  configMapName: inventory-consumer-config
+  service:
+    port: 8000
+    targetport: 8000
+    nodePort: 30804
+  labels:
+    environment: production
+    team: devops
+    app: inventory-consumer
+
 payment:
   name: payment
   repository: osamaazm/payment
@@ -57,6 +75,24 @@ payment:
     environment: production
     team: devops
     app: payment
+
+
+payment-consumer:
+  name: payment-consumer
+  repository: osamaazm/payment-consumer
+  tag: v1
+  replicas: 1
+  containerPort: 8000
+  type: NodePort
+  configMapName: payment-consumer-config
+  service:
+    port: 8000
+    targetport: 8000
+    nodePort: 30805
+  labels:
+    environment: production
+    team: devops
+    app: payment-consumer
 
 redis:
   name: redis

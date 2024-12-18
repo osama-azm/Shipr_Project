@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ Values.redis.name }}
+  name: {{  .Values.redis.name }}
 spec:
-  replicas: {{ Values.redis.replicas }}
+  replicas: {{  .Values.redis.replicas }}
   selector:
     matchLabels:
-      app: {{ Values.redis.name }}
+      app: {{  .Values.redis.name }}
   template:
     metadata:
       labels:
-        app: {{ Values.redis.name }}
+        app: {{  .Values.redis.name }}
     spec:
       containers:
-      - name: {{ Values.redis.name }}
-        image: {{ Values.redis.repository }}:{{ Values.redis.tag }}
+      - name: {{  .Values.redis.name }}
+        image: {{  .Values.redis.repository }}:{{  .Values.redis.tag }}
         ports:
-        - containerPort: {{ Values.redis.containerPort }}
+        - containerPort: {{  .Values.redis.containerPort }}
         livenessProbe:
           tcpSocket:
-            port: {{ Values.redis.containerPort }}
+            port: {{  .Values.redis.containerPort }}
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           tcpSocket:
-            port: {{ Values.redis.containerPort }}
+            port: {{  .Values.redis.containerPort }}
           initialDelaySeconds: 5
           periodSeconds: 5
         volumeMounts:
