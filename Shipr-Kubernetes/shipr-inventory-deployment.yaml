@@ -24,6 +24,8 @@ spec:
             value: "redis"
           - name: REDIS_PORT
             value: "6379"
+          - name: REDIS_DB
+            value: "0"
         livenessProbe:
           httpGet:
             path: /
@@ -49,17 +51,3 @@ spec:
           limits:
             memory: "256Mi"
             cpu: "1000m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: shipr-inventory
-spec:
-  selector:
-    app: shipr-inventory
-  ports:
-    - protocol: TCP
-      port: 8000
-      targetPort: 8000
-      nodePort: 30802
-  type: NodePort

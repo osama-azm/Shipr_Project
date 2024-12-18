@@ -21,15 +21,15 @@ inventory:
   replicas: 1
   containerPort: 8000
   type: NodePort
+  configMapName: inventory-config
   service:
     port: 8000
     targetport: 8000
     nodePort: 30802
   env:
-    host-name: REDIS_HOST
-    host-value: "redis"
-    port-name: REDIS_PORT
-    port-value: "6379"
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    REDIS_DB: 0
   labels:
     environment: production
     team: devops
@@ -42,21 +42,17 @@ payment:
   replicas: 1
   containerPort: 8000
   type: NodePort
+  configMapName: payment-config
   service:
     port: 8000
     targetport: 8000
     nodePort: 30803
   env:
-    host-name: REDIS_HOST
-    host-value: "redis"
-    port-name: REDIS_PORT
-    port-value: "6379"
-    db-name: REDIS_DB
-    db-value: "0"
-    url-name: PRODUCT_SERVICE_URL
-    url-value: "http://192.168.49.2:30802"
-    fee-name: FEE_PERCENTAGE
-    fee-value: "0.2"
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    REDIS_DB: 0
+    PRODUCT_SERVICE_URL: http://192.168.49.2:30802"
+    FEE_PERCENTAGE: 0.2
   labels:
     environment: production
     team: devops
@@ -69,6 +65,10 @@ redis:
   replicas: 1
   containerPort: 6379
   type: ClusterIP
+  storageClassName: standard
+  provisioner: k8s.io/minikube-hostpath
+  reclaimPolicy: Delete
+  volumeBindingMode: Immediate
   service:
     port: 6379
   volume:
@@ -77,6 +77,7 @@ redis:
     hostPath: /data/redis
 
 ingress:
+  enabled: true
   name: shipr-ingress
   host: shipr.local
   frontend:

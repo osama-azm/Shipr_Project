@@ -21,11 +21,9 @@ spec:
         image: {{ Values.inventory.repository }}:{{ Values.inventory.tag }}
         ports:
         - containerPort: {{ Values.inventory.containerPort }}
-        env:
-          - name: {{ Values.inventory.env.host-name }}
-            value: {{ Values.inventory.env.host-value }}
-          - name: {{ Values.inventory.env.port-name }}
-            value: {{ Values.inventory.env.port-value }}
+        envFrom:
+          - configMapRef:
+              name: {{ Values.inventory.configMapName }}
         livenessProbe:
           httpGet:
             path: /
@@ -44,17 +42,3 @@ spec:
             port: {{ Values.inventory.containerPort }}
           initialDelaySeconds: 15
           periodSeconds: 5
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ Values.inventory.name }}
-spec:
-  selector:
-    app: {{ Values.inventory.name }}
-  ports:
-    - protocol: TCP
-      port: {{ Values.inventory.service.port }}
-      targetPort: {{ Values.inventory.service.targetport }}
-      nodePort: {{ Values.inventory.service.nodePort }}
-  type: {{ Values.inventory.type }}

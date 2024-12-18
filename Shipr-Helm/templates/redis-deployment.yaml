@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ Values.redis.name }}
 spec:
@@ -34,16 +34,3 @@ spec:
       - name: redis-storage
         persistentVolumeClaim:
           claimName: redis-pvc
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ Values.redis.name }}
-spec:
-  selector:
-    app: {{ Values.redis.name }}
-  ports:
-    - protocol: TCP
-      port: {{ Values.redis.service.port }}
-      targetPort: {{ Values.redis.service.port }}
-  type: {{ Values.redis.type }}
