@@ -1,47 +1,90 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml '''
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: tools
+                    image: docker:20.10.24-dind
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                  - name: kubectl-helm
+                    image: bitnami/kubectl:latest
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock
+                      name: docker-sock
+                  volumes:
+                  - name: docker-sock
+                    hostPath:
+                      path: /var/run/docker.sock
+            '''
+        }
+    }
 
     parameters {
-        choice(name: 'SERVICE_NAME', choices: ['shipr-payment', 'shipr-inventory', 'shipr-frontend', 'shipr-inventory-consumer', 'shipr-payment-consumer'], description: 'Select the service to deploy')
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Enter the branch to deploy')
     }
 
     environment {
+        SERVICE_NAME = 'shipr-frontend'
         DOCKER_HUB_REPO = 'osamaazm/test-repo'
+        HELM_VERSION = 'v3.12.0'
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 script {
-                    checkout([$class: 'GitSCM', branches: [[name: "/Shipr-Containerization/${params.BRANCH_NAME}"]]])
+                    checkout scmGit(branches: [[name: "*/${params.BRANCH_NAME}"]], extensions: [], userRemoteConfigs: [[credentialsId: 'GITHUB_CREDENTIALS', url: 'https://github.com/osama-azm/TestJenkins']])
                 }
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${DOCKER_HUB_REPO}:${params.SERVICE_NAME} ./${params.SERVICE_NAME}"
+                container('tools') {
+                    script {
+                        sh "docker build -t ${DOCKER_HUB_REPO}:${SERVICE_NAME} ./shipr-frontend"
+                    }
                 }
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Deploy Docker Image to DockerHub') {
             steps {
-                script {
-                    sh "docker push ${DOCKER_HUB_REPO}:${params.SERVICE_NAME}"
+                container('tools') {
+                    script {
+                        withCredentials([string(credentialsId: 'osamaazm', variable: 'osamaazm')]) {
+                            sh 'docker login -u osamaazm -p ${osamaazm}'
+                        }
+                        sh "docker push ${DOCKER_HUB_REPO}:${SERVICE_NAME}"
+                    }
                 }
-            }
+            }   
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    sh """
-                    helm upgrade --install ${params.SERVICE_NAME} ./Shipr-Helm/${params.SERVICE_NAME} \
-                        --set image.repository=${DOCKER_HUB_REPO} \
-                        --set image.tag=${params.SERVICE_NAME}
-                    """
+                container('kubectl-helm') {
+                    script {
+                        sh """
+                        helm upgrade --install ${SERVICE_NAME} ./Shipr-Helm/${SERVICE_NAME} \
+                            --set image.repository=${DOCKER_HUB_REPO} \
+                            --set image.tag=${SERVICE_NAME}
+                        """
+                    }
                 }
             }
         }
@@ -49,10 +92,241 @@ pipeline {
 
     post {
         success {
-            echo "${params.SERVICE_NAME} has been successfully built, pushed, and deployed!"
+            echo "${SERVICE_NAME} has been successfully built, pushed, and deployed!"
         }
         failure {
-            echo "${params.SERVICE_NAME} pipeline failed."
+            echo "${SERVICE_NAME} pipeline failed."
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: tools
+                    image: docker:20.10.24-dind
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                  - name: kubectl-helm
+                    image: bitnami/kubectl:latest
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock
+                      name: docker-sock
+                  volumes:
+                  - name: docker-sock
+                    hostPath:
+                      path: /var/run/docker.sock
+            '''
+        }
+    }
+
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Enter the branch to deploy')
+    }
+
+    environment {
+        SERVICE_NAME = 'shipr-payment'
+        DOCKER_HUB_REPO = 'osamaazm/test-repo'
+        HELM_VERSION = 'v3.12.0'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    checkout scmGit(branches: [[name: "*/${params.BRANCH_NAME}"]], extensions: [], userRemoteConfigs: [[credentialsId: 'GITHUB_CREDENTIALS', url: 'https://github.com/osama-azm/TestJenkins']])
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                container('tools') {
+                    script {
+                        sh "docker build -t ${DOCKER_HUB_REPO}:${SERVICE_NAME} ./shipr-payment"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Docker Image to DockerHub') {
+            steps {
+                container('tools') {
+                    script {
+                        withCredentials([string(credentialsId: 'osamaazm', variable: 'osamaazm')]) {
+                            sh 'docker login -u osamaazm -p ${osamaazm}'
+                        }
+                        sh "docker push ${DOCKER_HUB_REPO}:${SERVICE_NAME}"
+                    }
+                }
+            }   
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                container('kubectl-helm') {
+                    script {
+                        sh """
+                        helm upgrade --install ${SERVICE_NAME} ./Shipr-Helm/${SERVICE_NAME} \
+                            --set image.repository=${DOCKER_HUB_REPO} \
+                            --set image.tag=${SERVICE_NAME}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "${SERVICE_NAME} has been successfully built, pushed, and deployed!"
+        }
+        failure {
+            echo "${SERVICE_NAME} pipeline failed."
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pipeline {
+    agent {
+        kubernetes {
+            yaml '''
+                apiVersion: v1
+                kind: Pod
+                spec:
+                  containers:
+                  - name: tools
+                    image: docker:20.10.24-dind
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                  - name: kubectl-helm
+                    image: bitnami/kubectl:latest
+                    command:
+                    - sleep
+                    args:
+                    - "infinity"
+                    securityContext:
+                      privileged: true
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock
+                      name: docker-sock
+                  volumes:
+                  - name: docker-sock
+                    hostPath:
+                      path: /var/run/docker.sock
+            '''
+        }
+    }
+
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Enter the branch to deploy')
+    }
+
+    environment {
+        SERVICE_NAME = 'shipr-inventory'
+        DOCKER_HUB_REPO = 'osamaazm/test-repo'
+        HELM_VERSION = 'v3.12.0'
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    checkout scmGit(branches: [[name: "*/${params.BRANCH_NAME}"]], extensions: [], userRemoteConfigs: [[credentialsId: 'GITHUB_CREDENTIALS', url: 'https://github.com/osama-azm/TestJenkins']])
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                container('tools') {
+                    script {
+                        sh "docker build -t ${DOCKER_HUB_REPO}:${SERVICE_NAME} ./shipr-inventory"
+                    }
+                }
+            }
+        }
+
+        stage('Deploy Docker Image to DockerHub') {
+            steps {
+                container('tools') {
+                    script {
+                        withCredentials([string(credentialsId: 'osamaazm', variable: 'osamaazm')]) {
+                            sh 'docker login -u osamaazm -p ${osamaazm}'
+                        }
+                        sh "docker push ${DOCKER_HUB_REPO}:${SERVICE_NAME}"
+                    }
+                }
+            }   
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                container('kubectl-helm') {
+                    script {
+                        sh """
+                        helm upgrade --install ${SERVICE_NAME} ./Shipr-Helm/${SERVICE_NAME} \
+                            --set image.repository=${DOCKER_HUB_REPO} \
+                            --set image.tag=${SERVICE_NAME}
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "${SERVICE_NAME} has been successfully built, pushed, and deployed!"
+        }
+        failure {
+            echo "${SERVICE_NAME} pipeline failed."
         }
     }
 }
