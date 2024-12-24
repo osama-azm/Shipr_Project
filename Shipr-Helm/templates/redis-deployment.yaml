@@ -1,42 +1,56 @@
 apiVersion: apps/v1
-kind: {{  .Values.redis.kind }}
+kind: {{ .Values.redis.kind }}
 metadata:
-  name: {{  .Values.redis.name }}
+  name: {{ .Values.redis.name }}
+  labels:
+    app: {{ .Values.redis.name }}
 spec:
-  replicas: {{  .Values.redis.replicas }}
+  replicas: {{ .Values.redis.replicas }}
   selector:
     matchLabels:
-      app: {{  .Values.redis.name }}
+      app: {{ .Values.redis.name }}
   template:
     metadata:
       labels:
-        {{- with .Values.redis.labels }}
-        {{- toYaml . | nindent 6 }}
-        {{- end }}
+        app: {{ .Values.redis.name }}
     spec:
       containers:
-      - name: {{  .Values.redis.name }}
-        image: {{  .Values.redis.repository }}:{{  .Values.redis.tag }}
+      - name: {{ .Values.redis.name }}
+        image: {{ .Values.redis.repository }}:{{ .Values.redis.tag }}
         ports:
-        - containerPort: {{  .Values.redis.containerPort }}
+        - containerPort: {{ .Values.redis.containerPort }}
         {{- if .Values.redis.probes.liveness.enabled }}
         livenessProbe:
           tcpSocket:
-            port: {{  .Values.redis.containerPort }}
-          initialDelaySeconds: 10
-          periodSeconds: 10
+            port: {{ .Values.redis.containerPort }}
+          initialDelaySeconds: {{ .Values.redis.initialDelaySeconds }}
+          periodSeconds: {{ .Values.redis.periodSeconds }}
         {{- end }}
         {{- if .Values.redis.probes.readiness.enabled }}
         readinessProbe:
           tcpSocket:
-            port: {{  .Values.redis.containerPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+            port: {{ .Values.redis.containerPort }}
+          initialDelaySeconds: {{ .Values.redis.initialDelaySeconds }}
+          periodSeconds: {{ .Values.redis.periodSeconds }}
         {{- end }}
+        {{- if eq .Values.redis.kind "StatefulSet" }}
         volumeMounts:
         - mountPath: /data
           name: redis-storage
+        {{- end }}
+  {{- if eq .Values.redis.kind "StatefulSet" }}
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-storage
+    spec:
+      accessModes: 
+        - {{ .Values.redis.storage.accessMode }}
+      resources:
+        requests:
+          storage: {{ .Values.redis.storage.size }}
+  {{- else }}
       volumes:
       - name: redis-storage
         persistentVolumeClaim:
           claimName: redis-pvc
+  {{- end }}

@@ -3,9 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Values.inventory.name }}
   labels:
-    {{- with .Values.inventory.labels }}
-    {{- toYaml . | nindent 6 }}
-    {{- end }}
+    app: {{ .Values.inventory.name }}
 spec:
   replicas: {{ .Values.inventory.replicas }}
   selector:
@@ -14,9 +12,7 @@ spec:
   template:
     metadata:
       labels:
-        {{- with .Values.inventory.labels }}
-        {{- toYaml . | nindent 6 }}
-        {{- end }}
+        app: {{ .Values.inventory.name }}
     spec:
       containers:
       - name: {{ .Values.inventory.name }}
@@ -26,24 +22,26 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ .Values.inventory.configMapName }}
+        {{- if .Values.inventory.use_probes }}
         livenessProbe:
           httpGet:
-            path: /
+            path: {{ .Values.inventory.path }}
             port: {{ .Values.inventory.containerPort }}
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          initialDelaySeconds: {{ .Values.inventory.initialDelaySeconds }}
+          periodSeconds: {{ .Values.inventory.periodSeconds }}
         readinessProbe:
           httpGet:
-            path: /
+            path: {{ .Values.inventory.path }}
             port: {{ .Values.inventory.containerPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: {{ .Values.inventory.initialDelaySeconds }}
+          periodSeconds: {{ .Values.inventory.periodSeconds }}
         startupProbe:
           httpGet:
-            path: /
+            path: {{ .Values.inventory.path }}
             port: {{ .Values.inventory.containerPort }}
-          initialDelaySeconds: 15
-          periodSeconds: 5
+          initialDelaySeconds: {{ .Values.inventory.initialDelaySeconds }}
+          periodSeconds: {{ .Values.inventory.periodSeconds }}
+        {{- end }}
         resources: 
           requests:
             memory: {{ .Values.inventory.resources.requests.memory }}

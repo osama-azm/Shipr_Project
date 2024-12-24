@@ -1,50 +1,51 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.inventory-consumer.name }}
-  labels:
-    {{- with .Values.inventory-consumer.labels }}
-    {{- toYaml . | nindent 6 }}
-    {{- end }}
+  name: {{ .Values.InventoryConsumer.name }}
+  labels: 
+    app: {{ .Values.InventoryConsumer.name }}
 spec:
-  replicas: {{ .Values.inventory-consumer.replicas }}
+  replicas: {{ .Values.InventoryConsumer.replicas }}
   selector:
     matchLabels:
-      app: {{ .Values.inventory-consumer.name }}
+      app: {{ .Values.InventoryConsumer.name }}
   template:
     metadata:
       labels:
-        {{- with .Values.inventory-consumer.labels }}
-        {{- toYaml . | nindent 6 }}
-        {{- end }}
+        app: {{ .Values.InventoryConsumer.name }}
     spec:
       containers:
-      - name: {{ .Values.inventory-consumer.name }}
-        image: {{ .Values.inventory-consumer.repository }}:{{ .Values.inventory-consumer.tag }}
+      - name: {{ .Values.InventoryConsumer.name }}
+        image: {{ .Values.InventoryConsumer.repository }}:{{ .Values.InventoryConsumer.tag }}
         ports:
-        - containerPort: {{ .Values.inventory-consumer.containerPort }}
+        - containerPort: {{ .Values.InventoryConsumer.containerPort }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Values.inventory.configMapName }}
+        {{- if .Values.InventoryConsumer.use_probes }}
         livenessProbe:
           httpGet:
-            path: /
-            port: {{ .Values.inventory-consumer.containerPort }}
-          initialDelaySeconds: 10
-          periodSeconds: 10
+            path: {{ .Values.InventoryConsumer.path }}
+            port: {{ .Values.InventoryConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.InventoryConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.InventoryConsumer.periodSeconds }}
         readinessProbe:
           httpGet:
-            path: /
-            port: {{ .Values.inventory-consumer.containerPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+            path: {{ .Values.InventoryConsumer.path }}
+            port: {{ .Values.InventoryConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.InventoryConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.InventoryConsumer.periodSeconds }}
         startupProbe:
           httpGet:
-            path: /
-            port: {{ .Values.inventory-consumer.containerPort }}
-          initialDelaySeconds: 15
-          periodSeconds: 5
+            path: {{ .Values.InventoryConsumer.path }}
+            port: {{ .Values.InventoryConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.InventoryConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.InventoryConsumer.periodSeconds }}
+        {{- end }}
         resources:
           requests:
-            memory: {{ .Values.inventory-consumer.resources.requests.memory }}
-            cpu: {{ .Values.inventory-consumer.resources.requests.cpu }}
+            memory: {{ .Values.InventoryConsumer.resources.requests.memory }}
+            cpu: {{ .Values.InventoryConsumer.resources.requests.cpu }}
           limits:
-            memory: {{ .Values.inventory-consumer.resources.limits.memory }}
-            cpu: {{ .Values.inventory-consumer.resources.limits.cpu }}
+            memory: {{ .Values.InventoryConsumer.resources.limits.memory }}
+            cpu: {{ .Values.InventoryConsumer.resources.limits.cpu }}

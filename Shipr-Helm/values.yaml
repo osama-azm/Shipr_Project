@@ -1,10 +1,14 @@
 frontend:
   name: frontend
-  repository: osamaazm/frontend
-  tag: v1
+  repository: osamaazm/shipr-frontend
+  tag: latest
   replicas: 1
   containerPort: 80
   type: NodePort
+  use_probes: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
   service:
     port: 80
     targetport: 80
@@ -15,27 +19,33 @@ frontend:
     app: frontend
   resources:
     requests:
+      set_requests: true
       memory: "128Mi"
       cpu: "500m"
     limits:
+      set_limits: true
       memory: "256Mi"
       cpu: "1000m"
 
 inventory:
   name: inventory
-  repository: osamaazm/inventory
-  tag: v1
+  repository: osamaazm/shipr-inventory
+  tag: latest
   replicas: 1
   containerPort: 8000
   type: NodePort
   configMapName: inventory-config
+  use_probes: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
   service:
     port: 8000
     targetport: 8000
     nodePort: 30802
   env:
     REDIS_HOST: redis
-    REDIS_PORT: 6379
+    REDIS_PORT: "6379"
     REDIS_DB: 0
   labels:
     environment: production
@@ -50,14 +60,18 @@ inventory:
       cpu: "1000m"
 
 
-inventory-consumer:
+InventoryConsumer:
   name: inventory-consumer
-  repository: osamaazm/inventory-consumer
-  tag: v1
+  repository: osamaazm/shipr-inventory-consumer
+  tag: latest
   replicas: 1
   containerPort: 8000
   type: NodePort
   configMapName: inventory-consumer-config
+  use_probes: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
   service:
     port: 8000
     targetport: 8000
@@ -76,21 +90,25 @@ inventory-consumer:
 
 payment:
   name: payment
-  repository: osamaazm/payment
-  tag: v1
+  repository: osamaazm/shipr-payment
+  tag: latest
   replicas: 1
   containerPort: 8000
   type: NodePort
   configMapName: payment-config
+  use_probes: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
   service:
     port: 8000
     targetport: 8000
     nodePort: 30803
   env:
     REDIS_HOST: redis
-    REDIS_PORT: 6379
+    REDIS_PORT: "6379"
     REDIS_DB: 0
-    PRODUCT_SERVICE_URL: http://192.168.49.2:30802"
+    PRODUCT_SERVICE_URL: http://192.168.49.2:8000
     FEE_PERCENTAGE: 0.2
   labels:
     environment: production
@@ -105,14 +123,18 @@ payment:
       cpu: "1000m"
 
 
-payment-consumer:
+PaymentConsumer:
   name: payment-consumer
-  repository: osamaazm/payment-consumer
-  tag: v1
+  repository: osamaazm/shipr-payment-consumer
+  tag: latest
   replicas: 1
   containerPort: 8000
   type: NodePort
   configMapName: payment-consumer-config
+  use_probes: false
+  path: /
+  initialDelaySeconds: 10
+  periodSeconds: 10
   service:
     port: 8000
     targetport: 8000
@@ -141,6 +163,12 @@ redis:
   provisioner: k8s.io/minikube-hostpath
   reclaimPolicy: Delete
   volumeBindingMode: Immediate
+  skipStorageClass: true
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  storage:
+    size: 5Gi
+    accessMode: ReadWriteOnce
   service:
     port: 6379
   volume:
@@ -167,10 +195,15 @@ redis:
   mountOptions:
     option1: "rw"
     option2: "dirsync"
+  selector:
+    matchLabels:
+      tier: backend
 
 ingress:
   enabled: false
   name: shipr-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
   rules:
     - host: frontend.example.com
       paths:

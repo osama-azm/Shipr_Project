@@ -2,10 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.payment.name }}
-  labels:
-    {{- with .Values.payment.labels }}
-    {{- toYaml . | nindent 6 }}
-    {{- end }}
+  labels: 
+    app: {{ .Values.payment.name }}
 spec:
   replicas: {{ .Values.payment.replicas }}
   selector:
@@ -13,10 +11,8 @@ spec:
       app: {{ .Values.payment.name }}
   template:
     metadata:
-      labels:
-        {{- with .Values.payment.labels }}
-        {{- toYaml . | nindent 6 }}
-        {{- end }}
+      labels: 
+        app: {{ .Values.payment.name }}
     spec:
       containers:
       - name: {{ .Values.payment.name }}
@@ -26,24 +22,26 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ .Values.payment.configMapName }}
+        {{- if .Values.payment.use_probes }}
         livenessProbe:
           httpGet:
-            path: /
+            path: {{ .Values.payment.path }}
             port: {{ .Values.payment.containerPort }}
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
         readinessProbe:
           httpGet:
-            path: /
+            path: {{ .Values.payment.path }}
             port: {{ .Values.payment.containerPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
         startupProbe:
           httpGet:
-            path: /
+            path: {{ .Values.payment.path }}
             port: {{ .Values.payment.containerPort }}
-          initialDelaySeconds: 15
-          periodSeconds: 5
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
+        {{- end }}
         resources:
           requests:
             memory: {{ .Values.payment.resources.requests.memory }}
