@@ -14,9 +14,11 @@ spec:
       labels:
         app: {{ .Values.redis.name }}
     spec:
+      restartPolicy: {{ .Values.redis.restart_policy }}
       containers:
       - name: {{ .Values.redis.name }}
         image: {{ .Values.redis.repository }}:{{ .Values.redis.tag }}
+        imagePullPolicy: {{ .Values.redis.pull_policy }}
         ports:
         - containerPort: {{ .Values.redis.containerPort }}
         {{- if .Values.redis.probes.liveness.enabled }}
@@ -42,6 +44,19 @@ spec:
         - mountPath: /data
           name: redis-storage
         {{- end }}
+        {{- if or .Values.redis.set_requests .Values.redis.set_limits }}
+        resources:
+        {{- end }}
+          {{- if .Values.redis.set_limits }}
+          limits:
+            cpu: {{ .Values.redis.cpu_limits }}
+            memory: {{ .Values.redis.memory_limits }}
+          {{- end }}
+          {{- if .Values.redis.set_requests }}
+          requests:
+            cpu: {{ .Values.redis.cpu_requests }}
+            memory: {{ .Values.redis.memory_requests }}
+          {{- end }}
   {{- if eq .Values.redis.kind "StatefulSet" }}
   volumeClaimTemplates:
   - metadata:

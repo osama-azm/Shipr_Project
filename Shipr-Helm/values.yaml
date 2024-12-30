@@ -166,6 +166,14 @@ redis:
   skipStorageClass: true
   initialDelaySeconds: 10
   periodSeconds: 10
+  restart_policy: Always
+  pull_policy: IfNotPresent
+  set_requests: false
+  set_limits: false
+  cpu_limits: "1000m"
+  memory_limits: "256Mi"
+  cpu_requests: "500m"
+  memory_requests: "128Mi"
   storage:
     size: 5Gi
     accessMode: ReadWriteOnce
