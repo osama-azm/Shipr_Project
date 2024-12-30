@@ -8,6 +8,17 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    {{- range .Values.ingress.tls }}
+    - hosts:
+      - {{ .hosts }}
+      secretName: {{ .secretName }}
+    {{- end }}
+  {{- end }}
   rules:
   {{- range .Values.ingress.rules }}
   - host: {{ .host }}
@@ -22,5 +33,12 @@ spec:
             port:
               number: {{ .service.port }}
       {{- end }}
+  {{- end }}
+  {{- if .Values.ingress.defaultBackend }}
+  defaultBackend:
+    service:
+      name: {{ .Values.ingress.defaultBackend.name }}
+      port:
+        number: {{ .Values.ingress.defaultBackend.port }}
   {{- end }}
 {{- end }}

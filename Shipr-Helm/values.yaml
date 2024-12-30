@@ -210,6 +210,20 @@ redis:
 ingress:
   enabled: false
   name: shipr-ingress
+  ingressClassName: nginx
+  defaultBackend:
+    name: default-backend
+    port: 80
+  tls:
+    - hosts:
+      - frontend.example.com
+      secretName: frontend-tls
+    - hosts:
+      - payment.example.com
+      secretName: payment-tls
+    - hosts:
+      - inventory.example.com
+      secretName: inventory-tls
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
   rules:
