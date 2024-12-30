@@ -37,6 +37,10 @@ spec:
         volumeMounts:
         - mountPath: /data
           name: redis-storage
+        {{- else }}
+        volumeMounts:
+        - mountPath: /data
+          name: redis-storage
         {{- end }}
   {{- if eq .Values.redis.kind "StatefulSet" }}
   volumeClaimTemplates:
@@ -49,8 +53,8 @@ spec:
         requests:
           storage: {{ .Values.redis.storage.size }}
   {{- else }}
-      volumes:
-      - name: redis-storage
-        persistentVolumeClaim:
-          claimName: redis-pvc
+  volumes:
+  - name: redis-storage
+    persistentVolumeClaim:
+      claimName: redis-pvc
   {{- end }}
