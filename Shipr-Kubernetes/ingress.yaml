@@ -13,20 +13,20 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: shipr-frontend-service
+            name: frontend
             port:
               number: 80
       - path: /payment
         pathType: Prefix
         backend:
           service:
-            name: shipr-payment-service
+            name: payment
             port:
               number: 8000
       - path: /inventory
         pathType: Prefix
         backend:
           service:
-            name: shipr-inventory-service
+            name: inventory
             port:
               number: 8000
