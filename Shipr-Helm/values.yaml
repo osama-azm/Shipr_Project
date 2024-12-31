@@ -232,20 +232,20 @@ ingress:
         - path: /
           pathType: Prefix
           service:
-            name: frontend-service
+            name: frontend
             port: 80
     - host: payment.example.com
       paths:
         - path: /
           pathType: Prefix
           service:
-            name: payment-service
+            name: payment
             port: 8000
     - host: inventory.example.com
       paths:
         - path: /
           pathType: Prefix
           service:
-            name: inventory-service
-            port: 8001
+            name: inventory
+            port: 8000
 
