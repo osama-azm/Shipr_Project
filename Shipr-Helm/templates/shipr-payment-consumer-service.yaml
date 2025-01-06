@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.PaymentConsumer.name }}
+  labels:
+    app: {{ .Values.PaymentConsumer.name }}
+    {{- with .Values.PaymentConsumer.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- with .Values.PaymentConsumer.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    app: {{ .Values.PaymentConsumer.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.PaymentConsumer.service.port }}
+      targetPort: {{ .Values.PaymentConsumer.service.targetport }}
+      {{- if or (eq .Values.PaymentConsumer.type "NodePort") (eq .Values.PaymentConsumer.type "LoadBalancer") }}
+      nodePort: {{ .Values.PaymentConsumer.service.nodePort }}
+      {{- end }}
+  type: {{ .Values.PaymentConsumer.type }}

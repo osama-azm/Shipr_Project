@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.payment.name }}
+  labels: 
+    app: {{ .Values.payment.name }}
+spec:
+  replicas: {{ .Values.payment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.payment.name }}
+  template:
+    metadata:
+      labels: 
+        app: {{ .Values.payment.name }}
+    spec:
+      containers:
+      - name: {{ .Values.payment.name }}
+        image: {{ .Values.payment.repository }}:{{ .Values.payment.tag }}
+        ports:
+        - containerPort: {{ .Values.payment.containerPort }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Values.payment.configMapName }}
+        {{- if .Values.payment.use_probes }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.payment.path }}
+            port: {{ .Values.payment.containerPort }}
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.payment.path }}
+            port: {{ .Values.payment.containerPort }}
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.payment.path }}
+            port: {{ .Values.payment.containerPort }}
+          initialDelaySeconds: {{ .Values.payment.initialDelaySeconds }}
+          periodSeconds: {{ .Values.payment.periodSeconds }}
+        {{- end }}
+        resources:
+          requests:
+            memory: {{ .Values.payment.resources.requests.memory }}
+            cpu: {{ .Values.payment.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.payment.resources.limits.memory }}
+            cpu: {{ .Values.payment.resources.limits.cpu }}

@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.PaymentConsumer.name }}
+  labels: 
+    app: {{ .Values.PaymentConsumer.name }}
+spec:
+  replicas: {{ .Values.PaymentConsumer.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.PaymentConsumer.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.PaymentConsumer.name }}
+    spec:
+      containers:
+      - name: {{ .Values.PaymentConsumer.name }}
+        image: {{ .Values.PaymentConsumer.repository }}:{{ .Values.PaymentConsumer.tag }}
+        ports:
+        - containerPort: {{ .Values.PaymentConsumer.containerPort }}
+        envFrom:
+          - configMapRef:
+              name: {{ .Values.payment.configMapName }}
+        {{- if .Values.PaymentConsumer.use_probes }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.PaymentConsumer.path }}
+            port: {{ .Values.PaymentConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.PaymentConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.PaymentConsumer.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.PaymentConsumer.path }}
+            port: {{ .Values.PaymentConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.PaymentConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.PaymentConsumer.periodSeconds }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.PaymentConsumer.path }}
+            port: {{ .Values.PaymentConsumer.containerPort }}
+          initialDelaySeconds: {{ .Values.PaymentConsumer.initialDelaySeconds }}
+          periodSeconds: {{ .Values.PaymentConsumer.periodSeconds }}
+        {{- end }}
+        resources:
+          requests:
+            memory: {{ .Values.PaymentConsumer.resources.requests.memory }}
+            cpu: {{ .Values.PaymentConsumer.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.PaymentConsumer.resources.limits.memory }}
+            cpu: {{ .Values.PaymentConsumer.resources.limits.cpu }}

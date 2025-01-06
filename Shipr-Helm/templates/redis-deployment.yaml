@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: {{ .Values.redis.kind }}
+metadata:
+  name: {{ .Values.redis.name }}
+  labels:
+    app: {{ .Values.redis.name }}
+spec:
+  replicas: {{ .Values.redis.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.redis.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.redis.name }}
+    spec:
+      restartPolicy: {{ .Values.redis.restart_policy }}
+      containers:
+      - name: {{ .Values.redis.name }}
+        image: {{ .Values.redis.repository }}:{{ .Values.redis.tag }}
+        imagePullPolicy: {{ .Values.redis.pull_policy }}
+        ports:
+        - containerPort: {{ .Values.redis.containerPort }}
+        {{- if .Values.redis.probes.liveness.enabled }}
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.redis.containerPort }}
+          initialDelaySeconds: {{ .Values.redis.initialDelaySeconds }}
+          periodSeconds: {{ .Values.redis.periodSeconds }}
+        {{- end }}
+        {{- if .Values.redis.probes.readiness.enabled }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.redis.containerPort }}
+          initialDelaySeconds: {{ .Values.redis.initialDelaySeconds }}
+          periodSeconds: {{ .Values.redis.periodSeconds }}
+        {{- end }}
+        {{- if eq .Values.redis.kind "StatefulSet" }}
+        volumeMounts:
+        - mountPath: /data
+          name: redis-storage
+        {{- else }}
+        volumeMounts:
+        - mountPath: /data
+          name: redis-storage
+        {{- end }}
+        {{- if or .Values.redis.set_requests .Values.redis.set_limits }}
+        resources:
+        {{- end }}
+          {{- if .Values.redis.set_limits }}
+          limits:
+            cpu: {{ .Values.redis.cpu_limits }}
+            memory: {{ .Values.redis.memory_limits }}
+          {{- end }}
+          {{- if .Values.redis.set_requests }}
+          requests:
+            cpu: {{ .Values.redis.cpu_requests }}
+            memory: {{ .Values.redis.memory_requests }}
+          {{- end }}
+  {{- if eq .Values.redis.kind "StatefulSet" }}
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-storage
+    spec:
+      accessModes: 
+        - {{ .Values.redis.storage.accessMode }}
+      resources:
+        requests:
+          storage: {{ .Values.redis.storage.size }}
+  {{- else }}
+  volumes:
+  - name: redis-storage
+    persistentVolumeClaim:
+      claimName: redis-pvc
+  {{- end }}
